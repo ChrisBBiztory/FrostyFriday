@@ -50,8 +50,16 @@ select * from FF_WEEK3_KEYWORDS;
 select d.filename, count(d.file_row_number) 
 from FF_WEEK3_DATA d 
 where exists(
-    select keyword 
+    select 1 
     from FF_WEEK3_KEYWORDS k 
     where contains(d.filename, k.keyword)
 )
+group by d.filename;
+
+-- Second Approach using LIKE ANY, still using a subquery
+select d.filename, count(d.file_row_number) 
+from FF_WEEK3_DATA d 
+where d.filename like any (
+    select '%'||keyword||'%' 
+    from FF_WEEK3_KEYWORDS)
 group by d.filename;
