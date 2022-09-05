@@ -23,18 +23,11 @@ select * from FF_WEEK4_DATA;
 
 -- Create a new table which parses the JSON using lateral flattens to pull out the nested JSON data
 CREATE OR REPLACE TABLE FF_WEEK4 as (
-with eras as (
-    SELECT
-    data:"Era"::VARCHAR as era,
-    value as val
-    FROM FF_WEEK4_DATA,
-    lateral flatten( input => data:"Houses"))
-    
     select 
-    row_number() over (order by monarchs.value:"Birth"::DATE asc) as id,
+    row_number() over (order by monarchs.value:"Birth"::DATE asc, monarchs.value:"Start of Reign"::DATE asc) as id,
     monarchs.index + 1 as inter_house_id,
-    era,
-    val:"House"::VARCHAR as house,
+    data:"Era"::VARCHAR as era,
+    houses.value:"House"::VARCHAR as house,
     monarchs.value:"Name"::VARCHAR as name,
     CASE WHEN IS_ARRAY(monarchs.value:"Nickname") THEN monarchs.value:"Nickname"[0]::VARCHAR ELSE 
     monarchs.value:"Nickname"::VARCHAR END as nickname_1,
@@ -42,7 +35,7 @@ with eras as (
     monarchs.value:"Nickname"[2]::VARCHAR as nickname_3,
     monarchs.value:"Birth"::DATE as birth,
     monarchs.value:"Place of Birth"::VARCHAR as place_of_birth,
-    monarchs.value:"Start of Reign"::VARCHAR as start_of_reign,
+    monarchs.value:"Start of Reign"::DATE as start_of_reign,
     CASE WHEN IS_ARRAY(monarchs.value:"Consort\/Queen Consort") THEN monarchs.value:"Consort\/Queen Consort"[0]::VARCHAR ELSE
     monarchs.value:"Consort\/Queen Consort"::VARCHAR END as queen_or_queen_consort_1,
     monarchs.value:"Consort\/Queen Consort"[1]::VARCHAR as queen_or_queen_consort_2,
@@ -53,8 +46,10 @@ with eras as (
     SPLIT_PART(monarchs.value:"Age at Time of Death",' ',1)::INTEGER as age_at_time_of_death_years,
     monarchs.value:"Place of Death"::VARCHAR as place_of_death,
     monarchs.value:"Burial Place"::VARCHAR as burial_place
-    from eras,
-    lateral flatten( input => val:"Monarchs") monarchs
-    order by birth asc);
+    from FF_WEEK4_DATA,
+    lateral flatten( input => data:"Houses") houses,
+    lateral flatten( input => houses.value:"Monarchs") monarchs
+    );
+    
     
 select * from FF_WEEK4;
