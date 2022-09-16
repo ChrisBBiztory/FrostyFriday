@@ -10,15 +10,31 @@ insert into FF_WEEK_5 values
 -- Checking the data was inserted correctly
 select * from FF_WEEK_5;
 
--- Create basic UDF
-create or replace function timesthree(startint integer)
+-- Create basic SQL UDF 
+create or replace function timesthree(i integer)
   returns integer
   as
   $$
-    startint*3
+    i*3
   $$
   ;
 
 -- Test function, first value should be 3 and last should be 60
 SELECT timesthree(start_int)
+FROM FF_week_5;
+
+-- Create a python UDF instead
+create or replace function timesthree_python(i int)
+returns int
+language python
+runtime_version = '3.8'
+handler = 'timesthree_py'
+as
+$$
+def timesthree_py(i):
+  return i*3
+$$;
+
+-- Test function, first value should be 3 and last should be 60
+SELECT timesthree_python(start_int)
 FROM FF_week_5;
